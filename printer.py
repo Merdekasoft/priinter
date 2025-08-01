@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import sys
-from PyQt5.QtWidgets import (
+import cups
+from PySide6.QtWidgets import (
     QApplication, QDialog, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout,
     QGridLayout, QFormLayout, QLabel, QComboBox, QRadioButton, QButtonGroup,
     QCheckBox, QSpinBox, QPushButton, QListWidget, QSizePolicy,
-    QDialogButtonBox, QGroupBox, QSpacerItem, QStyle, QToolButton, QFrame
+    QDialogButtonBox, QGroupBox, QSpacerItem, QStyle, QToolButton, QFrame,
+    QMessageBox
 )
-from PyQt5.QtGui import QPixmap, QIcon, QPainter, QFont
-from PyQt5.QtCore import Qt, QSize, QRect
+from PySide6.QtGui import QPixmap, QIcon, QPainter, QFont
+from PySide6.QtCore import Qt, QSize, QRect
 
 def get_icon(primary_name, secondary_name=None, fallback_style_pixmap_enum=None):
     """
@@ -107,6 +109,29 @@ class LinuxPrinterPreferencesDialog(QDialog):
         bottom_button_layout.addWidget(self.help_button)
         bottom_button_layout.addWidget(self.dialog_button_box)
         main_dialog_layout.addLayout(bottom_button_layout)
+
+        self.conn = cups.Connection()
+        self.printer_name = self.get_default_printer()
+
+        self.help_button.clicked.connect(self.show_help)
+        self.dialog_button_box.accepted.connect(self.apply_settings)
+        self.dialog_button_box.rejected.connect(self.reject)
+
+    def get_default_printer(self):
+        try:
+            return self.conn.getDefault()
+        except Exception as e:
+            print("No default printer found:", e)
+            return None
+
+    def show_help(self):
+        QMessageBox.information(self, "Help", "This dialog allows you to configure printer settings.")
+
+    def apply_settings(self):
+        # Contoh: Terapkan pengaturan ke printer
+        # Anda bisa mengambil nilai dari widget dan mengirim ke printer di sini
+        QMessageBox.information(self, "Apply", "Settings applied to printer (dummy).")
+        self.accept()
 
     def _create_left_panel_content(self, parent_layout, include_ink_levels=True):
         left_column_layout = QVBoxLayout()
@@ -442,7 +467,40 @@ class LinuxPrinterPreferencesDialog(QDialog):
         
         item_layout.addWidget(text_content_label, 1) 
                                                      
+        item_frame.mousePressEvent = lambda event, t=title_text: self.maintenance_action(t)
+
         return item_frame
+
+    def maintenance_action(self, title):
+        # Dummy: panggil aksi maintenance sesuai judul
+        if title == "Cleaning":
+            self.printer_clean()
+        elif title == "Deep Cleaning":
+            self.printer_deep_clean()
+        elif title == "Print Head Alignment":
+            self.printer_align_head()
+        elif title == "Nozzle Check":
+            self.printer_nozzle_check()
+        elif title == "Ink Cartridge Settings":
+            self.printer_ink_settings()
+        else:
+            QMessageBox.information(self, "Maintenance", f"{title} (dummy).")
+
+    def printer_clean(self):
+        QMessageBox.information(self, "Cleaning", "Printer cleaning started (dummy).")
+
+    def printer_deep_clean(self):
+        QMessageBox.information(self, "Deep Cleaning", "Printer deep cleaning started (dummy).")
+
+    def printer_align_head(self):
+        QMessageBox.information(self, "Print Head Alignment", "Print head alignment started (dummy).")
+
+    def printer_nozzle_check(self):
+        QMessageBox.information(self, "Nozzle Check", "Nozzle check started (dummy).")
+
+    def printer_ink_settings(self):
+        QMessageBox.information(self, "Ink Cartridge Settings", "Ink cartridge settings (dummy).")
+
 
     def setup_maintenance_tab(self):
         main_layout = QVBoxLayout(self.tab_maintenance)
@@ -509,4 +567,4 @@ if __name__ == '__main__':
     # app.setStyle("Fusion") 
     dialog = LinuxPrinterPreferencesDialog()
     dialog.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
